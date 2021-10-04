@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 typedef struct 
 {
     int x,y;
 }pontos;
-
+typedef struct{
+    int custo;
+    char direcao[50];
+}caminho;
 /*Função para fazer a leitura das informações da arena, ela recebe por
 parametro as variaveis e o arquivo de entrada, apos isso é criada uma
 variavel para armazenar as informações que não são uteis para o programa
@@ -25,6 +29,7 @@ void leitura_parametro(char *nomeInstancia, int *orcamento, int *saida, char *di
     fscanf(entrada, "%s", lixo);
     fscanf(entrada, "%s", dimensao);
 }
+
 void calcula_saida(pontos saidas[10], int saida, pontos *inicio, int tempo[10])
 {
     int i, sub1=0, sub2=0;
@@ -96,7 +101,22 @@ void mostrar_arena(char **arena, int linha)
         printf("%s\n", arena[i]);
     }
 }
-void identifica_saidas(char **arena, int linha, int coluna, pontos saidas[10], pontos *inicio)
+void mapeia_campo_livre(char **arena, int linha, int coluna, pontos *livre)
+{
+    int l, c, auxl = 0;
+    for (l = 0; l < linha; l++)
+    {
+        for (c = 0; c < coluna; c++)
+        {
+            if(arena[l][c] == ' '){
+               livre[auxl].x=l;
+               livre[auxl].y=c;
+               auxl++;
+            }
+        }
+    }
+}
+void identifica_saidas(char **arena, int linha, int coluna, pontos saidas[10], pontos *inicio, int *num_livre)
 {
     int l, c, auxl = 0;
     for (l = 0; l < linha; l++)
@@ -113,6 +133,8 @@ void identifica_saidas(char **arena, int linha, int coluna, pontos saidas[10], p
             {
                 inicio->x = l;
                 inicio->y = c;
+            }else if(arena[l][c] == ' '){
+                *num_livre=*num_livre+1;
             }
         }
     }
@@ -136,7 +158,6 @@ void separa_dimencao(int *linha, int *coluna, char *dimencao)
         {
             *coluna = atoi(pt);
         }
-
         pt = strtok(NULL, "xX ");
         cont = cont + 1;
     }
@@ -144,8 +165,8 @@ void separa_dimencao(int *linha, int *coluna, char *dimencao)
 int main(int argc, char *argv[])
 {
     char **arena, nome_instancia[50], dimensao[25];
-    int saida, orcamento, linha, coluna, i, tempo[10];
-    pontos saidas[10],inicio;
+    int saida, orcamento, linha, coluna, i, tempo[10],num_livre=0;
+    pontos saidas[10],inicio,*livre,pilha[20];
     FILE *entrada;
     if (argc == 2)
     {
@@ -161,16 +182,22 @@ int main(int argc, char *argv[])
             leitura_arena(arena, entrada, linha);
             fclose(entrada);
             mostrar_arena(arena, linha);
-            identifica_saidas(arena, linha, coluna, saidas, &inicio);
+            identifica_saidas(arena, linha, coluna, saidas, &inicio,&num_livre);
+            livre = (pontos *) malloc(num_livre*sizeof(pontos));
+            mapeia_campo_livre(arena,linha,coluna,livre);
             for (i = 0; i < saida; i++)
             {
-                printf("%d %d\n", saidas[i].x, saidas[i].y);
+                printf("Saidas:%d %d\n", saidas[i].x, saidas[i].y);
             }
             printf("inicio:%d %d\n", inicio.x, inicio.y);
             calcula_saida(saidas,saida,&inicio,tempo);
             for (i = 0; i < saida; i++)
             {
                 printf("%d \n",tempo[i]);
+            }
+            for (i = 0; i < num_livre; i++)
+            {
+                printf("Livre:%d %d \n",livre[i].x,livre[i].y);
             }
         }
         else
@@ -180,11 +207,11 @@ int main(int argc, char *argv[])
         }
         /*Liberaçao do espaço alocado*/
         libera_arena(arena, linha);
+        free(livre);
     }
     else
     {
         printf("Exemplo de entrada .\\programa arquivo.dat");
     }
-
     return 0;
 }
