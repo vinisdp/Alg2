@@ -1,21 +1,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+//Função que lê paramestros e atribui aos ponteiros
 void leitura_parametro(char *nomeInstancia, int *orcamento, int *saida, char *dimencao, FILE *entrada)
 {
     char lixo[30];
     fscanf(entrada, "%s", lixo);
     fscanf(entrada, "%s", nomeInstancia);
+
     printf("%s\n", nomeInstancia);
+
     fscanf(entrada, "%s", lixo);
     fscanf(entrada, "%d", orcamento);
+
     printf("%d\n", *orcamento);
+
     fscanf(entrada, "%s", lixo);
     fscanf(entrada, "%d", saida);
+
     printf("%d\n", *saida);
+
     fscanf(entrada, "%s", lixo);
     fscanf(entrada, "%s", dimencao);
 }
+
 void aloca_arena(char **arena, int coluna)
 {
     int i;
@@ -30,6 +39,7 @@ void aloca_arena(char **arena, int coluna)
         }
     }
 }
+
 void libera_arena(char **Arena)
 {
     int y;
@@ -39,6 +49,7 @@ void libera_arena(char **Arena)
     }
     free(Arena);
 }
+
 void leitura_arena(char **Arena, FILE *entrada)
 {
     int y;
@@ -48,6 +59,7 @@ void leitura_arena(char **Arena, FILE *entrada)
         fscanf(entrada, " %[^\n]", Arena[y]);
     }
 }
+
 void mostrar_arena(char **arena)
 {
     int i;
@@ -56,6 +68,7 @@ void mostrar_arena(char **arena)
         printf("%s\n", arena[i]);
     }
 }
+
 void separa_dimencao(int *linha, int *coluna, char *dimencao)
 {
     char *pt;
@@ -76,16 +89,21 @@ void separa_dimencao(int *linha, int *coluna, char *dimencao)
         cont = cont + 1;
     }
 }
+
 int main(int argc, char *argv[])
 {
     char **arena, nome_instancia[50], dimencao[25];
+
     int saida, orcamento, linha, coluna;
+
     FILE *entrada;
     if (argc - 1 == 1)
     {
         entrada = fopen(argv[1], "r");
+
         leitura_parametro(nome_instancia, &orcamento, &saida, dimencao, entrada);
-        separa_dimencao(&linha,&coluna,dimencao);
+
+        separa_dimencao(&linha, &coluna, dimencao);
         /*Alocação das linhas da matriz*/
         arena = (char **)malloc(linha * sizeof(char *));
         /*Verificação da alocação*/
