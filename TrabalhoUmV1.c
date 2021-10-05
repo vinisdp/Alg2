@@ -2,14 +2,44 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct 
+typedef struct
 {
-    int x,y;
-}pontos;
-typedef struct{
+    int x, y;
+} pontos;
+typedef struct
+{
+    pontos coordenada;
+    char direcao;
     int custo;
-    char direcao[50];
-}caminho;
+} caminho;
+void empilha(caminho *pilha, int *topo, int l, int c, char direcao, int num_livre)
+{
+    if (*topo < num_livre)
+    {
+        pilha[*topo].coordenada.x = l;
+        pilha[*topo].coordenada.y = c;
+        pilha[*topo].direcao = direcao;
+        if(*topo>0){
+            pilha[*topo].custo = pilha[*topo - 1].custo + 1;
+        }else{
+            pilha[*topo].custo = 0;
+        }
+        
+        *topo++;
+    }
+    else
+        printf("Pilha cheia!");
+}
+caminho desempilha(caminho *pilha, int *topo)
+{
+    if (*topo > 0)
+    {
+        *topo--;
+        return pilha[*topo];
+    }
+    else
+        printf("Pilha vazia!");
+}
 /*Função para fazer a leitura das informações da arena, ela recebe por
 parametro as variaveis e o arquivo de entrada, apos isso é criada uma
 variavel para armazenar as informações que não são uteis para o programa
@@ -32,24 +62,34 @@ void leitura_parametro(char *nomeInstancia, int *orcamento, int *saida, char *di
 
 void calcula_saida(pontos saidas[10], int saida, pontos *inicio, int tempo[10])
 {
-    int i, sub1=0, sub2=0;
-    for(i = 0; i < saida;i++){
-       if(saidas[i].x>inicio->x){
-           sub1=saidas[i].x-inicio->x;
-           if(saidas[i].y>inicio->y){
-               sub2=saidas[i].y-inicio->y;
-           }else{
-               sub2=inicio->y-saidas[i].y;
-           }
-       }else{
-           sub1=inicio->x-saidas[i].x;
-           if(saidas[i].y>inicio->y){
-               sub2=saidas[i].y-inicio->y;
-           }else{
-               sub2=inicio->y-saidas[i].y;
-           }
-       }
-       tempo[i]=sub1+sub2;
+    int i, sub1 = 0, sub2 = 0;
+    for (i = 0; i < saida; i++)
+    {
+        if (saidas[i].x > inicio->x)
+        {
+            sub1 = saidas[i].x - inicio->x;
+            if (saidas[i].y > inicio->y)
+            {
+                sub2 = saidas[i].y - inicio->y;
+            }
+            else
+            {
+                sub2 = inicio->y - saidas[i].y;
+            }
+        }
+        else
+        {
+            sub1 = inicio->x - saidas[i].x;
+            if (saidas[i].y > inicio->y)
+            {
+                sub2 = saidas[i].y - inicio->y;
+            }
+            else
+            {
+                sub2 = inicio->y - saidas[i].y;
+            }
+        }
+        tempo[i] = sub1 + sub2;
     }
 }
 /*Função para alocar os vetores que serão utilizados para
@@ -101,20 +141,44 @@ void mostrar_arena(char **arena, int linha)
         printf("%s\n", arena[i]);
     }
 }
-void mapeia_campo_livre(char **arena, int linha, int coluna, pontos *livre)
+int busca_visitado(caminho *visitado, int l, int c, int qtd){
+    int i;
+    while(i<qtd){
+        if(l == visitado[i].coordenada.x && c == visitado[i].coordenada.y){
+            return 1;
+        }
+        i++;
+    }
+    return 0;
+}
+void mapeia_campo_livre(char **arena, int linha, int coluna, pontos saida, caminho *livre, pontos inicio, caminho *visitado, int *topo1, int *topo2, int num_livre)
 {
-    int l, c, auxl = 0;
-    for (l = 0; l < linha; l++)
+    int l = inicio.x, c = inicio.y,aux=0;
+    caminho desempilhado;
+    empilha(livre,topo1,inicio.x,inicio.y,' ',num_livre);
+    while (l != saida.x && c != saida.y)
     {
-        for (c = 0; c < coluna; c++)
+        if (arena[l][c + 1] == ' ' && busca_visitado(visitado,l,c+1,aux)!=1)
         {
-            if(arena[l][c] == ' '){
-               livre[auxl].x=l;
-               livre[auxl].y=c;
-               auxl++;
-            }
+            c++;
+            empilha(livre, topo1, l, c, 'd',num_livre);
+        }
+        else if (arena[l][c - 1] == ' ' && busca_visitado(visitado,l,c-1,aux)!=1)
+        {
+            c--;
+            empilha(livre, topo1, l, c, 'e',num_livre);
+        }else if (arena[l+1][c] == ' ' && busca_visitado(visitado,l+1,c,aux)!=1){
+            l++;
+            empilha(livre, topo1, l, c, 'b',num_livre);
+        }else if (arena[l-1][c] == ' ' && busca_visitado(visitado,l-1,c,aux)!=1){
+            l--;
+            empilha(livre, topo1, l, c, 'c',num_livre);
+        }else{
+            visitado[aux] = desempilha(livre,topo1);
+            aux++;
         }
     }
+    
 }
 void identifica_saidas(char **arena, int linha, int coluna, pontos saidas[10], pontos *inicio, int *num_livre)
 {
@@ -133,8 +197,10 @@ void identifica_saidas(char **arena, int linha, int coluna, pontos saidas[10], p
             {
                 inicio->x = l;
                 inicio->y = c;
-            }else if(arena[l][c] == ' '){
-                *num_livre=*num_livre+1;
+            }
+            else if (arena[l][c] == ' ')
+            {
+                *num_livre = *num_livre + 1;
             }
         }
     }
@@ -165,8 +231,9 @@ void separa_dimencao(int *linha, int *coluna, char *dimencao)
 int main(int argc, char *argv[])
 {
     char **arena, nome_instancia[50], dimensao[25];
-    int saida, orcamento, linha, coluna, i, tempo[10],num_livre=0;
-    pontos saidas[10],inicio,*livre,pilha[20];
+    int saida, orcamento, linha, coluna, i, tempo[10], num_livre = 0, topo1, topo2;
+    pontos saidas[10], inicio;
+    caminho *livre, *visitado;
     FILE *entrada;
     if (argc == 2)
     {
@@ -182,22 +249,19 @@ int main(int argc, char *argv[])
             leitura_arena(arena, entrada, linha);
             fclose(entrada);
             mostrar_arena(arena, linha);
-            identifica_saidas(arena, linha, coluna, saidas, &inicio,&num_livre);
-            livre = (pontos *) malloc(num_livre*sizeof(pontos));
-            mapeia_campo_livre(arena,linha,coluna,livre);
+            identifica_saidas(arena, linha, coluna, saidas, &inicio, &num_livre);
+            livre = (pontos *)malloc(num_livre * sizeof(pontos));
+            visitado = (pontos *)malloc(num_livre * sizeof(pontos));
+            calcula_saida(saidas, saida, &inicio, tempo);
             for (i = 0; i < saida; i++)
             {
-                printf("Saidas:%d %d\n", saidas[i].x, saidas[i].y);
+                mapeia_campo_livre(arena, linha, coluna, saidas[i], livre, inicio, visitado, topo1, topo2, num_livre);
             }
             printf("inicio:%d %d\n", inicio.x, inicio.y);
-            calcula_saida(saidas,saida,&inicio,tempo);
-            for (i = 0; i < saida; i++)
-            {
-                printf("%d \n",tempo[i]);
-            }
+
             for (i = 0; i < num_livre; i++)
             {
-                printf("Livre:%d %d \n",livre[i].x,livre[i].y);
+                printf("Livre:%d %d \n", livre[i].coordenada.x, livre[i].coordenada.y);
             }
         }
         else
