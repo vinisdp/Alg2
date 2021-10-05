@@ -7,7 +7,7 @@ typedef struct
     int x, y;
 } pontos;
 
-typedef struct
+typedef struct 
 {
     int andavel;
     int listaAberta;
@@ -19,8 +19,6 @@ typedef struct
     int parenteColuna;
 } node;
 
-//var global
-node **no;
 
 /*Função para fazer a leitura das informações da arena, ela recebe por
 parametro as variaveis e o arquivo de entrada, apos isso é criada uma
@@ -198,46 +196,44 @@ int heuristic(int linha1, int coluna1, int linha2, int coluna2)
 int isWalkable(char **matriz, int i, int j)
 {
     if (matriz[i][j] == ' ')
-        return 1;
+        return TRUE;
 
     else if (matriz[i][j] == '#')
-        return 0;
+        return FALSE;
 }
 
-void iniciaNode(int **matriz, int linha, int coluna)
+node **iniciaNode(char **matriz, int linha, int coluna)
 {
+    node **no;
     int i, j;
     for (i = 0; i < linha; i++)
     {
         for (j = 0; j < coluna; j++)
         {
-            no[i][j].andavel = info(matriz, i, j);
-            no[i][j].listaAberta = 0;
-            no[i][j].listaFechada = 0;
+            no[i][j].andavel = isWalkable(matriz, i, j);
+            no[i][j].listaAberta = FALSE;
+            no[i][j].listaFechada = FALSE;
             no[i][j].g = 0;
             no[i][j].h = 0;
-            no[i][j].f = no[i][j].g + no[i][j].h;
-            no[i][j].parenteLinha = 0;
-            no[i][j].parenteColuna = 0;
+            no[i][j].f = 0;
+            no[i][j].parenteLinha = NULL;
+            no[i][j].parenteColuna = NULL;
         }
     }
+    return no;
 }
 
-void encontraMenorCaminho(int **matriz, int linha, int coluna, int inicioC, int inicioL, int alvoL, int alvoC)
+void encontraMenorCaminho(node **matriz ,int iniciox, int inicioy, int finalx, int finaly)
 {
 
-    int i, j;
-    int dlinha, dcoluna;
-    int linhaatual = inicioL;
-    int colunaatual = inicioC;
+    int x, y;
+    int dx, dy;
+    int linhaatual = iniciox;
+    int colunaatual = inicioy;
+    int menorf = 1000;
 
-    no[linhaatual][colunaatual].h = heuristic(linhaatual, colunaatual, alvoL, alvoC);
-    no[linhaatual][colunaatual].f = no[linhaatual][colunaatual].g + no[linhaatual][colunaatual].h;
-    no[linhaatual][colunaatual].listaAberta = 1;
     while (linhaatual != alvoL && colunaatual != alvoC)
     {
-        //definindo valor minimo com valor alto para que a comparacao inicial sempre seja menor
-        int menorF = 1000;
         for (i = 0; i < linha; i++)
         {
             for (j = 0; j < coluna; j++)
@@ -252,14 +248,14 @@ void encontraMenorCaminho(int **matriz, int linha, int coluna, int inicioC, int 
             }
         }
 
-        no[linhaatual][colunaatual].listaAberta = 0;
-        no[linhaatual][colunaatual].listaAberta = 1;
+        matriz[linhaatual][colunaatual].listaAberta = FALSE;
+        matriz[linhaatual][colunaatual] = TRUE;
 
         for (dlinha = -1; dlinha <= 1; dlinha++)
         {
             for (dcoluna = -1; dcoluna <= 1; dcoluna++)
             {
-            if( no[linhaatual+dlinha][colunaatual+dcoluna].andavel ==1  && no[linhaatual + dlinha][colunaatual +dcoluna].listaFechada)
+                if (no[linhaatual + dlinha][colunaatual + dcoluna].andavel && no[linhaatual + dlinha][colunaatual + dcoluna].listaFechada)
             }
         }
     }
