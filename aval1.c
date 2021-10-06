@@ -5,8 +5,8 @@
 typedef struct
 {
     int x, y;
-}pontos;
-typedef struct 
+} pontos;
+typedef struct
 {
     int andavel;
     int listaAberta;
@@ -16,8 +16,7 @@ typedef struct
     int f;
     int parenteLinha;
     int parenteColuna;
-}node;
-
+} node;
 
 /*Função para fazer a leitura das informações da arena, ela recebe por
 parametro as variaveis e o arquivo de entrada, apos isso é criada uma
@@ -39,37 +38,35 @@ void leitura_parametro(char *nomeInstancia, int *orcamento, int *saida, char *di
     fscanf(entrada, "%s", dimensao);
 }
 
-void calcula_saida(pontos saidas[10], int saida, pontos *inicio, int tempo[10])
+int calcula_saida(pontos coordenadaSaida, int linha, int coluna)
 {
-    int i, sub1 = 0, sub2 = 0;
-    for (i = 0; i < saida; i++)
+    int sub1 = 0, sub2 = 0, tempo;
+    if (coordenadaSaida.x > linha)
     {
-        if (saidas[i].x > inicio->x)
+        sub1 = coordenadaSaida.x - linha;
+        if (coordenadaSaida.y > coluna)
         {
-            sub1 = saidas[i].x - inicio->x;
-            if (saidas[i].y > inicio->y)
-            {
-                sub2 = saidas[i].y - inicio->y;
-            }
-            else
-            {
-                sub2 = inicio->y - saidas[i].y;
-            }
+            sub2 = coordenadaSaida.y - coluna;
         }
         else
         {
-            sub1 = inicio->x - saidas[i].x;
-            if (saidas[i].y > inicio->y)
-            {
-                sub2 = saidas[i].y - inicio->y;
-            }
-            else
-            {
-                sub2 = inicio->y - saidas[i].y;
-            }
+            sub2 = coluna - coordenadaSaida.y;
         }
-        tempo[i] = sub1 + sub2;
     }
+    else
+    {
+        sub1 = linha - coordenadaSaida.x;
+        if (coordenadaSaida.y > coluna)
+        {
+            sub2 = coordenadaSaida.y - coluna;
+        }
+        else
+        {
+            sub2 = coluna - coordenadaSaida.y;
+        }
+    }
+    tempo = sub1 + sub2;
+    return tempo;
 }
 /*Função para alocar os vetores que serão utilizados para
 coluna da matriz da arena nela é recebido quantidade de linhas,
@@ -100,6 +97,15 @@ void libera_arena(char **Arena, int linha)
     }
     free(Arena);
 }
+void liberaNo(node **no, int linha)
+{
+    int y;
+    for (y = 0; y < linha; y++)
+    {
+        free(no[y]);
+    }
+    free(no);
+}
 /*Função para a leitura das linhas da arena
 de dentro do arquivo usando o fscanf*/
 void leitura_arena(char **Arena, FILE *entrada, int linha)
@@ -120,22 +126,7 @@ void mostrar_arena(char **arena, int linha)
         printf("%s\n", arena[i]);
     }
 }
-void mapeia_campo_livre(char **arena, int linha, int coluna, pontos *livre)
-{
-    int l, c, auxl = 0;
-    for (l = 0; l < linha; l++)
-    {
-        for (c = 0; c < coluna; c++)
-        {
-            if (arena[l][c] == ' ')
-            {
-                livre[auxl].x = l;
-                livre[auxl].y = c;
-                auxl++;
-            }
-        }
-    }
-}
+
 void identifica_saidas(char **arena, int linha, int coluna, pontos saidas[10], pontos *inicio, int *num_livre)
 {
     int l, c, auxl = 0;
@@ -188,16 +179,18 @@ void separa_dimencao(int *linha, int *coluna, char *dimencao)
 int isWalkable(char **matriz, int i, int j)
 {
     int r;
-    if (matriz[i][j] == ' '){
+    if (matriz[i][j] == ' ')
+    {
         r = 1;
     }
-    else if (matriz[i][j] == '#'){
+    else if (matriz[i][j] == '#')
+    {
         r = 0;
     }
-    return r;    
+    return r;
 }
 
-void iniciaNode(node **no,char **matriz, int linha, int coluna)
+void iniciaNode(node **no, char **matriz, int linha, int coluna)
 {
     int i, j;
     for (i = 0; i < linha; i++)
@@ -215,7 +208,36 @@ void iniciaNode(node **no,char **matriz, int linha, int coluna)
         }
     }
 }
-
+pontos encontraParente(node **no, int linhaAtual, int colunaAtual, pontos saida)
+{
+    pontos coordenada;
+    int dLinha, dColuna, linhaParente, colunaParente,menorF=0;
+    coordenada.x=linhaAtual;
+    coordenada.y=colunaAtual;
+    for (dLinha = -1; dLinha <= 1; dLinha++)
+    {
+        for (dColuna = -1; dColuna <= 1; dColuna++)
+        {
+            linhaParente = linhaAtual - dLinha;
+            colunaParente = colunaAtual - dColuna;
+            if (dLinha != dColuna && no[linhaParente][colunaParente].andavel == 1)
+            {
+                no[linhaParente][colunaParente].parenteLinha = linhaAtual;
+                no[linhaParente][colunaParente].parenteColuna = colunaAtual;
+                no[linhaParente][colunaParente].g = no[linhaAtual][colunaAtual].g + 1;
+                no[linhaParente][colunaParente].h = calcula_saida(saida,linhaParente,colunaParente);
+                no[linhaParente][colunaParente].f = no[linhaParente][colunaParente].g + no[linhaParente][colunaParente].h;
+                if(menorF>no[linhaParente][colunaParente].f){
+                    menorF=no[linhaParente][colunaParente].f;
+                    coordenada.x=linhaParente;
+                    coordenada.y=colunaParente;
+                }
+            }
+        }
+    }
+    printf("No:\nAndavel:%d \nCoordenadas:%d,%d\nG:%d\nH:%d\nF:%d\n", no[coordenada.x][coordenada.y].andavel, no[coordenada.x][coordenada.y].parenteLinha, no[coordenada.x][coordenada.y].parenteColuna,no[coordenada.x][coordenada.y].g,no[coordenada.x][coordenada.y].h,no[coordenada.x][coordenada.y].f);
+    return coordenada;
+}
 
 void aloca_no(node **no, int coluna, int linha)
 {
@@ -231,10 +253,20 @@ void aloca_no(node **no, int coluna, int linha)
         }
     }
 }
+void procuraCaminho(node **no, pontos inicio, pontos coordenadaSaida,int saida){
+    pontos coordenadaAtual;
+    coordenadaAtual=inicio;
+    while(coordenadaAtual.x!= coordenadaSaida.x && coordenadaAtual.y!= coordenadaSaida.y){
+        coordenadaAtual=encontraParente(no,coordenadaAtual.x,coordenadaAtual.y,coordenadaSaida);
+        if(no[coordenadaAtual.x][coordenadaAtual.y].h==1){
+            coordenadaAtual=coordenadaSaida;
+        }
+    }
+}
 int main(int argc, char *argv[])
 {
     char **arena, nome_instancia[50], dimensao[25];
-    int saida, orcamento, linha, coluna, i, tempo[10], num_livre = 0;
+    int saida, orcamento, linha, coluna, i, num_livre = 0;
     pontos saidas[10], inicio;
     node **no;
     FILE *entrada;
@@ -259,24 +291,26 @@ int main(int argc, char *argv[])
             printf("Identificando saida.\n");
             identifica_saidas(arena, linha, coluna, saidas, &inicio, &num_livre);
             printf("Alocando no.\n");
-            no = (node **)malloc(linha * sizeof(node*));
+            no = (node **)malloc(linha * sizeof(node *));
             printf("Alocando no!");
-            if(no==NULL){
+            if (no == NULL)
+            {
                 printf("Memoria insuficiente.\n");
                 exit(1);
             }
             printf("Alocando no!\n");
-            aloca_no(no,linha,coluna);
+            aloca_no(no, linha, coluna);
             printf("Iniciando no!\n");
-            iniciaNode(no,arena,linha,coluna);
-            printf("%d\n",no[1][1].andavel);
+            iniciaNode(no, arena, linha, coluna);
+            printf("inicio:%d %d\n", inicio.x, inicio.y);
+            for(i=0;i<saida;i++){
+                procuraCaminho(no,inicio,saidas[i],saida);
+            }
             for (i = 0; i < saida; i++)
             {
                 printf("Saidas:%d %d\n", saidas[i].x, saidas[i].y);
             }
             printf("inicio:%d %d\n", inicio.x, inicio.y);
-            calcula_saida(saidas, saida, &inicio, tempo);
-
         }
         else
         {
@@ -285,7 +319,7 @@ int main(int argc, char *argv[])
         }
         /*Liberaçao do espaço alocado*/
         libera_arena(arena, linha);
-        free(no);
+        liberaNo(no,linha);
     }
     else
     {
