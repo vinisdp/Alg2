@@ -1,3 +1,30 @@
+# Programa de Encontrar Menor Caminho em Labirinto
+
+Este programa em C foi desenvolvido para encontrar o menor caminho em um labirinto representado por uma matriz. Ele utiliza o algoritmo A* (A-star) para encontrar o caminho ótimo do ponto de início ao ponto de saída, considerando obstáculos e custos de movimentação.
+
+## Funcionalidades
+
+- Leitura de parâmetros de entrada a partir de um arquivo.
+- Identificação do ponto de início, pontos de saída e áreas livres no labirinto.
+- Cálculo do caminho mais curto usando o algoritmo A*.
+- Saída do caminho encontrado e custo total.
+
+## Requisitos do Sistema
+
+Para compilar e executar este programa, você precisa ter um ambiente de desenvolvimento C configurado, como GCC, e as seguintes bibliotecas padrão:
+
+- `stdio.h`
+- `stdlib.h`
+- `string.h`
+
+## Compilação e Execução
+
+Para compilar o programa, execute o seguinte comando:
+
+```bash
+gcc programa.c -o programa
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+
 # Análise de Palavras e Etiquetas em Arquivos de Texto
 
 Este programa em C realiza a análise de palavras e etiquetas em arquivos de texto, contabilizando frequências de ocorrência e gerando um arquivo CSV como saída. Ele foi desenvolvido como parte de um trabalho acadêmico pelos alunos Vinicius Silva de Paula e Julio Lossavaro.
