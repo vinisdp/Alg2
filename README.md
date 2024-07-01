@@ -22,7 +22,7 @@ Para compilar e executar este programa, você precisa ter um ambiente de desenvo
 Para compilar o programa, execute o seguinte comando:
 
 ```bash
-gcc programa.c -o programa
+gcc programa.c -o programa```
 -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Análise de Palavras e Etiquetas em Arquivos de Texto
